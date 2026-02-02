@@ -35,8 +35,8 @@ function init(self)
 		wall_slide_gravity = -50,
 		debug = true,
 		jump_config = {
-			coyote_time = 0.2,
-			buffer_time = 1,
+			coyote_time = 0.07,
+			buffer_time = 0.07,
 		},
 	})
 end
@@ -48,12 +48,12 @@ end
 function on_move_trigger(self, message)
 	local direction = message.direction
 	self.platypus.move(vmath.vector3(direction.x * self.velocity, 0, 0))
+
 	if direction.y > 0 then
 		self.platypus.jump_pressed(self.velocity)
 	elseif direction.y == 0 then
 		self.platypus.jump_released()
 	end
-	--msg.post(Urls.Body, "apply_force", { force = direction * self.velocity, position = go.get_world_position() })
 end
 
 function on_stop_move(self)

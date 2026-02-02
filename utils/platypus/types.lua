@@ -47,15 +47,13 @@ local platypus = {}
 ---@field buffer_time number?  -- seconds (wrapper uses)
 
 ---@class PlatypusJumpTimerState
----@field timer number
----@field duration number
----@field active boolean
+---@field timer ManualTimer
 
 ---@class PlatypusJumpBufferState : PlatypusJumpTimerState
 ---@field power number|nil
 
 ---@class PlatypusJumpState
----@field status number -- 0 = not pressed, 1 = pressed, 2 = long-pressed
+---@field status number
 ---@field coyote PlatypusJumpTimerState
 ---@field buffer PlatypusJumpBufferState
 

@@ -82,12 +82,7 @@ local function input_arrow(self, action_id, action)
 
   local is_moving = vmath.length(self.keyboard_direction) > 0
 
-  if is_moving then
-    local direction = vmath.normalize(self.keyboard_direction)
-    msg.post(Urls.Player, Msg.Player.MOVE_TRIGGER, { direction = direction })
-  else
-    msg.post(Urls.Player, Msg.Player.STOP_MOVE)
-  end
+  msg.post(Urls.Player, Msg.Player.MOVE_TRIGGER, { direction = self.keyboard_direction })
 
   return true
 end
