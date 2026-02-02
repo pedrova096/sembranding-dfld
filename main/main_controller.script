@@ -1,0 +1,94 @@
+local Msg = require("lib.msg");
+
+local GameState = {
+  None = 0,
+  Loading = 1,
+  Home = 2,
+  InGame = 3,
+  GameOver = 4,
+}
+
+local Urls = {
+  GameProxy = "/proxies#game_proxy",
+  GameOverProxy = "/proxies#game_over_proxy",
+  HomeProxy = "/proxies#home_proxy",
+}
+
+function init(self)
+  self.state = GameState.None
+  msg.post(Urls.GameProxy, "load")
+  --msg.post(Urls.HomeProxy, "load")
+end
+
+function final(self)
+end
+
+function update(self, dt)
+end
+
+function fixed_update(self, dt)
+end
+
+local MSG_PROXY_UNLOADED = hash("proxy_unloaded")
+local MSG_PROXY_LOADED = hash("proxy_loaded")
+local MSG_GAME_OVER = hash("game_over")
+local MSG_NEW_GAME = hash("new_game")
+
+local function on_game_over(self, message)
+  msg.post(Urls.GameProxy, "disable")
+  msg.post(Urls.GameProxy, "final")
+  msg.post(Urls.GameProxy, "unload")
+
+  msg.post(Urls.GameOverProxy, "load")
+end
+
+local PROXY_FRAGMENT_MAP = {
+  [hash("home")] = Urls.HomeProxy,
+  [hash("game_over")] = Urls.GameOverProxy,
+}
+
+local function on_new_game(self, message, sender)
+  local proxy = PROXY_FRAGMENT_MAP[sender]
+
+  msg.post(proxy, "disable")
+  msg.post(proxy, "final")
+  msg.post(proxy, "unload")
+
+  msg.post(Urls.GameProxy, "load")
+end
+
+function on_message(self, message_id, message, sender)
+  if message_id == Msg.PROXY_LOADED then
+    msg.post(sender, "enable")
+    msg.post(sender, "acquire_input_focus")
+
+    if sender == msg.url(Urls.HomeProxy) then
+      self.state = GameState.Home
+    end
+
+    if sender == msg.url(Urls.GameProxy) then
+      self.state = GameState.InGame
+    end
+
+    if sender == msg.url(Urls.GameOverProxy) then
+      self.state = GameState.GameOver
+    end
+  end
+
+  if message_id == Msg.Main.GAME_OVER then
+    on_game_over(self, message)
+  end
+
+  if message_id == Msg.Main.NEW_GAME then
+    on_new_game(self, message, sender.socket)
+  end
+
+  if message_id == Msg.PROXY_UNLOADED then
+  end
+end
+
+function on_input(self, action_id, action)
+end
+
+function on_reload(self)
+end

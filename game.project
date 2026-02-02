@@ -1,0 +1,35 @@
+[bootstrap]
+main_collection = /main/game/game.collectionc
+
+[script]
+shared_state = 1
+
+[display]
+width = 960
+height = 640
+high_dpi = 1
+update_frequency = 60
+
+[android]
+input_method = HiddenInputField
+
+[html5]
+scale_mode = stretch
+
+[project]
+title = sembranding
+dependencies#0 = https://github.com/Insality/defold-tweener/archive/refs/tags/5.zip
+dependencies#1 = https://github.com/britzl/Platypus/archive/master.zip
+
+[graphics]
+default_texture_min_filter = nearest
+default_texture_mag_filter = nearest
+
+[physics]
+scale = 0.5
+debug = 1
+gravity_y = 0.0
+
+[input]
+game_binding = /input.input_bindingc
+

@@ -1,0 +1,70 @@
+local platypus = require("utils.platypus.platypus")
+local Msg = require("lib.msg")
+
+local Urls = {
+	Body = "#body",
+	Ext = {
+		CameraElement = "/camera",
+	}
+}
+
+go.property("velocity", 100)
+
+function init(self)
+	msg.post(Urls.Ext.CameraElement, Msg.Camera.CAMERA_FOLLOW)
+
+	self.platypus = platypus.create({
+		collisions = {
+			separation = platypus.SEPARATION_RAYS,
+			groups = {
+				[hash("ground")] = platypus.DIR_ALL,
+				[hash("onewayup")] = platypus.DIR_DOWN,
+				[hash("onewayright")] = platypus.DIR_LEFT,
+			},
+			left = 10,
+			right = 10,
+			top = 20,
+			bottom = 24,
+			offset = vmath.vector3(0, 25, 0)
+		},
+		gravity = -800,
+		max_velocity = 500,
+		allow_double_jump = true,
+		allow_wall_jump = true,
+		allow_wall_slide = true,
+		wall_slide_gravity = -50,
+		debug = true,
+		jump_config = {
+			coyote_time = 0.2,
+			buffer_time = 1,
+		},
+	})
+end
+
+function update(self, dt)
+	self.platypus.update(dt)
+end
+
+function on_move_trigger(self, message)
+	local direction = message.direction
+	self.platypus.move(vmath.vector3(direction.x * self.velocity, 0, 0))
+	if direction.y > 0 then
+		self.platypus.jump_pressed(self.velocity)
+	elseif direction.y == 0 then
+		self.platypus.jump_released()
+	end
+	--msg.post(Urls.Body, "apply_force", { force = direction * self.velocity, position = go.get_world_position() })
+end
+
+function on_stop_move(self)
+end
+
+function on_message(self, message_id, message, sender)
+	if message_id == Msg.Player.MOVE_TRIGGER then
+		on_move_trigger(self, message)
+	elseif message_id == Msg.Player.STOP_MOVE then
+		on_stop_move(self)
+	else
+		self.platypus.on_message(message_id, message, sender)
+	end
+end

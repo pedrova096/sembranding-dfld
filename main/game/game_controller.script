@@ -1,0 +1,129 @@
+local Msg = require("lib.msg")
+local Utils = require("utils.utils")
+
+local Urls = {
+  Player = "/player/root",
+  CameraElement = "/camera#camera",
+  EnemyFactory = "/factories#enemy_factory",
+  UI = "/ui#game_gui"
+}
+
+local TILEMAP_SIZE = 64
+
+local function init_enemy_spawner(self)
+  if not self.map_bounds then
+    return
+  end
+
+  for i = 1, 4 do
+    local random_x = math.random(self.map_bounds.left, self.map_bounds.right)
+    local random_y = math.random(self.map_bounds.bottom, self.map_bounds.top)
+
+    local position = vmath.vector3(random_x, random_y, 1)
+    local enemy = collectionfactory.create(Urls.EnemyFactory, position)
+    table.insert(self.enemies, enemy["/enemy"])
+  end
+end
+
+function init(self)
+  msg.post(".", "acquire_input_focus")
+
+  self.keyboard_direction = vmath.vector3()
+  self.mouse_position = vmath.vector3()
+  self.enemies = {}
+
+  self.action_b_active = false
+  timer.delay(0.1, false, init_enemy_spawner)
+end
+
+function final(self)
+end
+
+local function on_set_map_bounds(self, message)
+  self.map_bounds = message
+end
+
+local function on_update_health_status(self, message)
+  msg.post(Urls.UI, Msg.Player.UPDATE_HEALTH_STATUS, message)
+end
+
+function on_message(self, message_id, message, sender)
+  if message_id == Msg.Game.SET_MAP_BOUNDS then
+    on_set_map_bounds(self, message)
+  elseif message_id == Msg.Player.UPDATE_HEALTH_STATUS then
+    on_update_health_status(self, message)
+  end
+end
+
+local function input_arrow(self, action_id, action)
+  if not action_id then
+    return false
+  end
+
+  local is_up = action_id == hash("up")
+  local is_down = action_id == hash("down")
+  local is_left = action_id == hash("left")
+  local is_right = action_id == hash("right")
+
+  if not (is_up or is_down or is_left or is_right) then
+    return false
+  end
+
+  local x_direction = is_left and -1 or is_right and 1 or 0
+  local y_direction = is_up and 1 or is_down and -1 or 0
+
+  if action.pressed then
+    self.keyboard_direction = self.keyboard_direction + vmath.vector3(x_direction, y_direction, 0)
+  end
+
+  if action.released then
+    self.keyboard_direction = self.keyboard_direction - vmath.vector3(x_direction, y_direction, 0)
+  end
+
+  local is_moving = vmath.length(self.keyboard_direction) > 0
+
+  if is_moving then
+    local direction = vmath.normalize(self.keyboard_direction)
+    msg.post(Urls.Player, Msg.Player.MOVE_TRIGGER, { direction = direction })
+  else
+    msg.post(Urls.Player, Msg.Player.STOP_MOVE)
+  end
+
+  return true
+end
+
+local function input_mouse(self, action)
+  if not (action.x and action.y) then
+    return false
+  end
+
+  local world = Utils.camera_to_world_coordinates(Urls.CameraElement, vmath.vector3(action.x, action.y, 0))
+  world.z = 1
+
+  self.mouse_position = world
+  return true
+end
+
+local function input_action(self, action_id, action)
+  local is_action_a = action_id == hash("action_a")
+  local is_action_b = action_id == hash("action_b")
+
+  return false
+end
+
+
+function on_input(self, action_id, action)
+  local handled = false
+
+  input_mouse(self, action)
+
+  if input_arrow(self, action_id, action) then
+    handled = true
+  end
+
+  if input_action(self, action_id, action) then
+    handled = true
+  end
+
+  return handled
+end

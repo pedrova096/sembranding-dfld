@@ -1,0 +1,61 @@
+image: "/assets/tiles/tiles.png"
+tile_width: 48
+tile_height: 48
+tile_margin: 1
+collision: "/assets/tiles/tiles.png"
+convex_hulls {
+  index: 0
+  count: 4
+  collision_group: "ground"
+}
+convex_hulls {
+  index: 4
+  count: 4
+  collision_group: "ground"
+}
+convex_hulls {
+  index: 8
+  count: 4
+  collision_group: "ground"
+}
+convex_hulls {
+  index: 12
+  count: 4
+  collision_group: "ground"
+}
+convex_hulls {
+  index: 16
+  count: 4
+  collision_group: "ground"
+}
+convex_hulls {
+  index: 20
+  count: 4
+  collision_group: "ground"
+}
+convex_hulls {
+  index: 24
+  count: 5
+  collision_group: "ground"
+}
+convex_hulls {
+  index: 29
+  count: 5
+  collision_group: "ground"
+}
+convex_hulls {
+  index: 34
+  count: 4
+  collision_group: "ground"
+}
+convex_hulls {
+  index: 38
+  count: 4
+  collision_group: "ground"
+}
+convex_hulls {
+  index: 42
+  count: 4
+  collision_group: "ground"
+}
+collision_groups: "ground"
