@@ -56,7 +56,7 @@ local function shake_pipe(self, dt)
 	---@type number
 	local shake_magnitude = self.shake_payload.magnitude
 
-	local shake_offset = original_position + VMath.random_vector3(-shake_magnitude, shake_magnitude)
+	local shake_offset = original_position + VMath.random_vector2D(-shake_magnitude, shake_magnitude)
 
 	go.set_position(shake_offset)
 end

@@ -1,15 +1,23 @@
 name: "player"
+instances {
+  id: "seeder"
+  prototype: "/main/game/player/seeder/seeder.go"
+  position {
+    x: 26.0
+    y: 26.0
+    z: 1.0
+  }
+}
 scale_along_z: 0
 embedded_instances {
   id: "root"
-  children: "ball"
   children: "visual"
   data: "components {\n"
   "  id: \"controller\"\n"
   "  component: \"/main/game/player/player_controller.script\"\n"
   "}\n"
   "embedded_components {\n"
-  "  id: \"collisionobject\"\n"
+  "  id: \"collision_object\"\n"
   "  type: \"collisionobject\"\n"
   "  data: \"type: COLLISION_OBJECT_TYPE_TRIGGER\\n"
   "mass: 0.0\\n"
@@ -54,25 +62,6 @@ embedded_instances {
   "\"\n"
   "  position {\n"
   "    y: 24.0\n"
-  "  }\n"
-  "}\n"
-  ""
-}
-embedded_instances {
-  id: "ball"
-  data: "embedded_components {\n"
-  "  id: \"sprite\"\n"
-  "  type: \"sprite\"\n"
-  "  data: \"default_animation: \\\"ball\\\"\\n"
-  "material: \\\"/builtins/materials/sprite.material\\\"\\n"
-  "textures {\\n"
-  "  sampler: \\\"texture_sampler\\\"\\n"
-  "  texture: \\\"/assets/player/player.atlas\\\"\\n"
-  "}\\n"
-  "\"\n"
-  "  position {\n"
-  "    x: 24.0\n"
-  "    y: 25.0\n"
   "  }\n"
   "}\n"
   ""

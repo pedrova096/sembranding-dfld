@@ -1,0 +1,145 @@
+local VMath = require("utils.vmath")
+local Math = require("utils.math")
+local Msg = require("lib.msg")
+local Follower = require("utils.follower")
+local ManualTweener = require("utils.manual_tweener")
+
+local StatusEnum = {
+	Idle = hash("idle"),
+	Move = hash("move"),
+}
+
+function init(self)
+	self.follower = Follower.create({
+		max_speed = 120,
+		acceleration = 200,
+		epsilon = 1,
+		smooth_radius = 20,
+	})
+
+	self.transition_follower = Follower.create({
+		max_speed = 10,
+		acceleration = 40,
+		epsilon = 0.01,
+		smooth_radius = 0,
+	})
+
+	self.follow_target = nil
+	self.follow_offset = vmath.vector3()
+
+	self.transition_y_tweener = ManualTweener.create({
+		playback = ManualTweener.PLAYBACK_LOOP_PINGPONG,
+		from = 1,
+		to = -1,
+		easing = ManualTweener.EASING_INOUT_QUAD,
+		duration = 1.5,
+	})
+	self.status = StatusEnum.Idle
+	self.transition_offset = vmath.vector3()
+	self.target_transition_offset = vmath.vector3()
+
+	self.debug = true
+end
+
+local TRANSITION_MAX_OFFSET = 8
+local function idle_pipe(self, dt)
+	if self.status == StatusEnum.Idle and VMath.is_near_close_to(self.transition_offset, self.target_transition_offset) then
+		local random_direction = vmath.vector3(
+			Math.random_pick({ 0.125, 0.25, 0.5 }) * (1 - math.random(0, 1) * 2),
+			Math.random_pick({ 0.25, 0.5, 0.75, 1 }) * Math.sign(self.target_transition_offset.y) * -1,
+			0
+		)
+		self.target_transition_offset = random_direction * TRANSITION_MAX_OFFSET
+	end
+
+
+	if self.status == StatusEnum.Move then
+		if VMath.is_near_zero(self.transition_offset) then
+			return
+		end
+
+		self.target_transition_offset = vmath.vector3(0)
+	end
+
+	if self.status == StatusEnum.Idle and self.debug then
+		local seeder_position = go.get_position() - self.transition_offset
+		local from = seeder_position + self.target_transition_offset
+
+
+		local crosshair_size = 5
+		local crosshair_color = vmath.vector4(1, 1, 0, 1)
+		msg.post("@render:", "draw_line",
+			{
+				start_point = from + vmath.vector3(-crosshair_size, 0, 0),
+				end_point = from + vmath.vector3(crosshair_size, 0, 0),
+				color = crosshair_color
+			})
+		msg.post("@render:", "draw_line",
+			{
+				start_point = from + vmath.vector3(0, -crosshair_size, 0),
+				end_point = from + vmath.vector3(0, crosshair_size, 0),
+				color = crosshair_color
+			})
+
+		-- local segments = 16
+		-- local radius = TRANSITION_MAX_OFFSET
+		-- local base_angle = math.pi * 2 / segments
+		-- local start = seeder_position + vmath.vector3(radius, 0, 0)
+		-- local previous_point = start
+		-- for i = 0, segments do
+		-- 	local angle = i * base_angle
+		-- 	local x = seeder_position.x + radius * math.cos(angle)
+		-- 	local y = seeder_position.y + radius * math.sin(angle)
+		-- 	local end_point = vmath.vector3(x, y, 0)
+		-- 	msg.post("@render:", "draw_line", {
+		-- 		start_point = previous_point,
+		-- 		end_point = end_point,
+		-- 		color = vmath.vector4(0, 1, 1, 1)
+		-- 	})
+		-- 	previous_point = end_point
+		-- end
+	end
+
+	self.transition_offset = self.transition_follower:tick(dt, {
+		position = self.transition_offset,
+		target_position = self.target_transition_offset,
+	})
+end
+
+local function follow_pipe(self, dt)
+	if not self.follow_target then return end
+
+	local seeder_position = go.get_position() - self.transition_offset
+	local target_position = VMath.z_extends(
+		go.get_position(self.follow_target) + self.follow_offset,
+		seeder_position.z)
+
+	local new_position, velocity = self.follower:tick(dt, {
+		position = seeder_position,
+		target_position = target_position,
+	})
+
+	if VMath.is_near_zero(velocity) then
+		self.status = StatusEnum.Idle
+	else
+		self.status = StatusEnum.Move
+	end
+
+	go.set_position(new_position + self.transition_offset)
+end
+
+function update(self, dt)
+	idle_pipe(self, dt)
+	follow_pipe(self, dt)
+end
+
+local function on_follow_player(self, message, sender)
+	self.follow_target = sender
+	self.follow_offset = message.offset
+end
+
+function on_message(self, message_id, message, sender)
+	if message_id == Msg.Seeder.FOLLOW_PLAYER then
+		on_follow_player(self, message, sender)
+	end
+end

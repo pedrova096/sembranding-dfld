@@ -2,13 +2,15 @@ local platypus = require("utils.platypus.platypus")
 local Msg = require("lib.msg")
 
 local Urls = {
-	Body = "#body",
 	Ext = {
 		CameraElement = "/camera",
-	}
+		GameController = "/game_controller",
+	},
+	Seeder = "seeder",
 }
 
 go.property("velocity", 100)
+go.property("jump_force", 200)
 
 function init(self)
 	msg.post(Urls.Ext.CameraElement, Msg.Camera.CAMERA_FOLLOW)
@@ -18,6 +20,7 @@ function init(self)
 			separation = platypus.SEPARATION_RAYS,
 			groups = {
 				[hash("ground")] = platypus.DIR_ALL,
+				[hash("seedable")] = platypus.DIR_ALL,
 				[hash("onewayup")] = platypus.DIR_DOWN,
 				[hash("onewayright")] = platypus.DIR_LEFT,
 			},
@@ -39,10 +42,71 @@ function init(self)
 			buffer_time = 0.07,
 		},
 	})
+
+	msg.post(Urls.Seeder, Msg.Seeder.FOLLOW_PLAYER, {
+		offset = vmath.vector3(26.0, 26.0, 0)
+	})
+
+	self.debug = true
+end
+
+local CONTACT_RAYS_SIZE = 10
+local CONTACT_RAYS = { vmath.vector3(-10, 4, 0), vmath.vector3(0, 4, 0), vmath.vector3(10, 4, 0) }
+local function find_seedable_contact(self)
+	local position = go.get_position()
+	for _, ray in ipairs(CONTACT_RAYS) do
+		local from = position + ray
+		local to = from + vmath.vector3(0, -CONTACT_RAYS_SIZE, 0)
+		local contact = physics.raycast(from, to, { hash("seedable") })
+		if self.debug then
+			msg.post("@render:", "draw_line", {
+				start_point = from,
+				end_point = to,
+				color = vmath.vector4(0, 0, 1, 1)
+			})
+		end
+		if contact then
+			return contact
+		end
+	end
+
+	return nil
+end
+
+local function seedable_contact_pipe(self)
+	if not self.platypus.has_ground_contact() then return end
+
+	local contact = find_seedable_contact(self)
+	if not contact then
+		if self.current_seedable_contact then
+			msg.post(Urls.Ext.GameController, Msg.Game.SEEDABLE_CONTACT_END, self.current_seedable_contact)
+			self.current_seedable_contact = nil
+		end
+
+		return
+	end
+
+	-- if self.current_seedable_contact.id == contact.id then
+	-- 	return
+	-- end
+
+	self.current_seedable_contact = {
+		fraction = contact.fraction,
+		group = contact.group,
+		id = contact.id,
+		normal = contact.normal,
+		position = contact.position,
+		request_id = contact.request_id,
+	}
+
+	pprint("seedable contact", self.current_seedable_contact)
+
+	msg.post(Urls.Ext.GameController, Msg.Game.SEEDABLE_CONTACT, self.current_seedable_contact)
 end
 
 function update(self, dt)
 	self.platypus.update(dt)
+	seedable_contact_pipe(self)
 end
 
 function on_move_trigger(self, message)
@@ -50,7 +114,7 @@ function on_move_trigger(self, message)
 	self.platypus.move(vmath.vector3(direction.x * self.velocity, 0, 0))
 
 	if direction.y > 0 then
-		self.platypus.jump_pressed(self.velocity)
+		self.platypus.jump_pressed(self.jump_force)
 	elseif direction.y == 0 then
 		self.platypus.jump_released()
 	end

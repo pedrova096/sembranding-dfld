@@ -29,7 +29,7 @@ embedded_instances {
   }
 }
 embedded_instances {
-  id: "controller"
+  id: "game_controller"
   data: "components {\n"
   "  id: \"controller\"\n"
   "  component: \"/main/game/game_controller.script\"\n"

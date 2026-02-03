@@ -11,7 +11,7 @@ convex_hulls {
 convex_hulls {
   index: 4
   count: 4
-  collision_group: "ground"
+  collision_group: "seedable"
 }
 convex_hulls {
   index: 8
@@ -59,3 +59,4 @@ convex_hulls {
   collision_group: "ground"
 }
 collision_groups: "ground"
+collision_groups: "seedable"

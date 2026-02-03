@@ -9,23 +9,19 @@ local Player = {
   PUNCH_HIT = hash("punch_hit"),
 }
 
-local Game = {
-  SET_MAP_BOUNDS = hash("set_map_bounds"),
+local Seeder = {
+  FOLLOW_PLAYER = hash("follow_player"),
 }
 
-local Kameha = {
-  MOVE_TRIGGER = hash("move_trigger"),
+local Game = {
+  SET_MAP_BOUNDS = hash("set_map_bounds"),
+  SEEDABLE_CONTACT = hash("seedable_contact"),
+  SEEDABLE_CONTACT_END = hash("seedable_contact_end"),
 }
 
 local Main = {
   GAME_OVER = hash("game_over"),
   NEW_GAME = hash("new_game")
-}
-
-local Meleer = {
-  PREPARE_ATTACK = hash("prepare_attack"),
-  RUN_ATTACK = hash("run_attack"),
-  END_ATTACK = hash("end_attack"),
 }
 
 local Camera = {
@@ -39,10 +35,9 @@ local Camera = {
 return {
   Player = Player,
   Camera = Camera,
+  Seeder = Seeder,
   Game = Game,
-  Kameha = Kameha,
   Main = Main,
-  Meleer = Meleer,
   ---
   HIDE_ELEMENT = hash("hide_element"),
   SHOW_ELEMENT = hash("show_element"),

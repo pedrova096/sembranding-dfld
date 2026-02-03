@@ -18,8 +18,7 @@ scale_mode = stretch
 
 [project]
 title = sembranding
-dependencies#0 = https://github.com/Insality/defold-tweener/archive/refs/tags/5.zip
-dependencies#1 = https://github.com/britzl/Platypus/archive/master.zip
+dependencies#0 = https://github.com/britzl/Platypus/archive/master.zip
 
 [graphics]
 default_texture_min_filter = nearest
