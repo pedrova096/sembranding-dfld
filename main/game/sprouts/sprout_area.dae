@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="utf-8"?>
+<COLLADA xmlns="http://www.collada.org/2005/11/COLLADASchema" version="1.4.1">
+    <asset>
+        <contributor>
+            <author></author>
+            <authoring_tool>FBX COLLADA exporter</authoring_tool>
+        </contributor>
+        <created>2012-10-10T12:34:45Z</created>
+        <modified>2012-10-10T12:34:45Z</modified>
+        <unit meter="1.000000" name="centimeter" />
+        <up_axis>Y_UP</up_axis>
+    </asset>
+
+    <library_materials>
+        <material id="lambert1" name="lambert1">
+            <instance_effect url="#lambert1-fx" />
+        </material>
+    </library_materials>
+
+    <library_effects>
+        <effect id="lambert1-fx" name="lambert1">
+            <profile_COMMON>
+                <technique sid="standard">
+                    <lambert>
+                        <diffuse>
+                            <color>0.4 0.4 0.4 1.0</color>
+                        </diffuse>
+                    </lambert>
+                </technique>
+            </profile_COMMON>
+        </effect>
+    </library_effects>
+
+    <library_geometries>
+        <geometry id="quad48x24" name="quad48x24">
+            <mesh>
+
+                <!-- Positions (48 x 24) -->
+                <source id="quad48x24-positions">
+                    <float_array id="quad48x24-positions-array" count="12">
+                        -24.0 -12.0 0.0
+                        24.0 -12.0 0.0
+                        -24.0 12.0 0.0
+                        24.0 12.0 0.0
+                    </float_array>
+                    <technique_common>
+                        <accessor source="#quad48x24-positions-array" count="4" stride="3">
+                            <param name="X" type="float" />
+                            <param name="Y" type="float" />
+                            <param name="Z" type="float" />
+                        </accessor>
+                    </technique_common>
+                </source>
+
+                <!-- Normals -->
+                <source id="quad48x24-normals">
+                    <float_array id="quad48x24-normals-array" count="12">
+                        0 0 1
+                        0 0 1
+                        0 0 1
+                        0 0 1
+                    </float_array>
+                    <technique_common>
+                        <accessor source="#quad48x24-normals-array" count="4" stride="3">
+                            <param name="X" type="float" />
+                            <param name="Y" type="float" />
+                            <param name="Z" type="float" />
+                        </accessor>
+                    </technique_common>
+                </source>
+
+                <!-- UVs -->
+                <source id="quad48x24-uvs">
+                    <float_array id="quad48x24-uvs-array" count="8">
+                        0 0
+                        1 0
+                        0 1
+                        1 1
+                    </float_array>
+                    <technique_common>
+                        <accessor source="#quad48x24-uvs-array" count="4" stride="2">
+                            <param name="S" type="float" />
+                            <param name="T" type="float" />
+                        </accessor>
+                    </technique_common>
+                </source>
+
+                <vertices id="quad48x24-vertices">
+                    <input semantic="POSITION" source="#quad48x24-positions" />
+                    <input semantic="NORMAL" source="#quad48x24-normals" />
+                </vertices>
+
+                <!-- Two triangles -->
+                <triangles count="2" material="lambert1">
+                    <input semantic="VERTEX" source="#quad48x24-vertices" offset="0" />
+                    <input semantic="TEXCOORD" source="#quad48x24-uvs" offset="1" set="0" />
+                    <p>3 3 2 2 0 0 3 3 0 0 1 1</p>
+                </triangles>
+
+            </mesh>
+        </geometry>
+    </library_geometries>
+
+    <library_visual_scenes>
+        <visual_scene id="Scene" name="Scene">
+            <node id="Quad" name="Quad">
+                <matrix>
+                    1 0 0 0
+                    0 1 0 0
+                    0 0 1 0
+                    0 0 0 1
+                </matrix>
+                <instance_geometry url="#quad48x24">
+                    <bind_material>
+                        <technique_common>
+                            <instance_material symbol="lambert1" target="#lambert1" />
+                        </technique_common>
+                    </bind_material>
+                </instance_geometry>
+            </node>
+        </visual_scene>
+    </library_visual_scenes>
+
+    <scene>
+        <instance_visual_scene url="#Scene" />
+    </scene>
+</COLLADA>

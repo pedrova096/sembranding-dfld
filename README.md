@@ -11,3 +11,5 @@ If you run into trouble, help is available in [our forum](https://forum.defold.c
 Happy Defolding!
 
 ---
+
+vmath.matrix4(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1)

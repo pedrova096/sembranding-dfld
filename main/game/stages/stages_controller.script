@@ -45,19 +45,19 @@ function init(self)
 end
 
 function update(self, dt)
-	for _, tile in ipairs(self.seedable_tiles) do
-		-- draw a crosshair at the tile position
-		msg.post("@render:", "draw_line", {
-			start_point = vmath.vector3(tile.x - 10, tile.y, 0),
-			end_point = vmath.vector3(tile.x + 10, tile.y, 0),
-			color = vmath.vector4(1, 0, 0, 1)
-		})
-		msg.post("@render:", "draw_line", {
-			start_point = vmath.vector3(tile.x, tile.y - 10, 0),
-			end_point = vmath.vector3(tile.x, tile.y + 10, 0),
-			color = vmath.vector4(1, 0, 0, 1)
-		})
-	end
+	-- for _, tile in ipairs(self.seedable_tiles) do
+	-- 	-- draw a crosshair at the tile position
+	-- 	msg.post("@render:", "draw_line", {
+	-- 		start_point = vmath.vector3(tile.x - 10, tile.y, 0),
+	-- 		end_point = vmath.vector3(tile.x + 10, tile.y, 0),
+	-- 		color = vmath.vector4(1, 0, 0, 1)
+	-- 	})
+	-- 	msg.post("@render:", "draw_line", {
+	-- 		start_point = vmath.vector3(tile.x, tile.y - 10, 0),
+	-- 		end_point = vmath.vector3(tile.x, tile.y + 10, 0),
+	-- 		color = vmath.vector4(1, 0, 0, 1)
+	-- 	})
+	-- end
 end
 
 function on_message(self, message_id, message, sender)

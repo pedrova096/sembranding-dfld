@@ -1,0 +1,4 @@
+images {
+  image: "/assets/tiles/bad_sprout.png"
+}
+extrude_borders: 2

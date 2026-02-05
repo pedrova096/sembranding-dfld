@@ -10,6 +10,15 @@ instances {
   id: "stages_00"
   prototype: "/main/game/stages/stages_00/stages_00.go"
 }
+instances {
+  id: "spike_tile"
+  prototype: "/main/game/sprouts/bad_sprout/bad_sprout.go"
+  position {
+    x: 168.0
+    y: -352.0
+    z: 2.0
+  }
+}
 collection_instances {
   id: "player"
   collection: "/main/game/player/player_composer.collection"
@@ -33,6 +42,14 @@ embedded_instances {
   data: "components {\n"
   "  id: \"controller\"\n"
   "  component: \"/main/game/game_controller.script\"\n"
+  "}\n"
+  ""
+}
+embedded_instances {
+  id: "ui"
+  data: "components {\n"
+  "  id: \"ui\"\n"
+  "  component: \"/main/game/ui/ui.gui\"\n"
   "}\n"
   ""
 }
