@@ -1,0 +1,43 @@
+script: "/main/game/ui/ui_controller.gui_script"
+fonts {
+  name: "ui_bold"
+  font: "/assets/fonts/ui_bold.font"
+}
+textures {
+  name: "ui"
+  texture: "/assets/ui/ui.atlas"
+}
+nodes {
+  position {
+    x: 291.0
+    y: 189.0
+  }
+  type: TYPE_TEMPLATE
+  id: "helpers"
+  inherit_alpha: true
+  template: "/printer/printer.gui"
+}
+nodes {
+  type: TYPE_BOX
+  id: "helpers/text_parent"
+  parent: "helpers"
+  template_node_child: true
+}
+nodes {
+  type: TYPE_TEXT
+  font: "ui_bold"
+  id: "helpers/prefab"
+  parent: "helpers"
+  overridden_fields: 10
+  template_node_child: true
+}
+nodes {
+  type: TYPE_BOX
+  texture: "ui/key_arrow_down"
+  id: "helpers/prefab_icon"
+  parent: "helpers"
+  overridden_fields: 9
+  template_node_child: true
+}
+material: "/builtins/materials/gui.material"
+adjust_reference: ADJUST_REFERENCE_PARENT

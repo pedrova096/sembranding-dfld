@@ -1,0 +1,40 @@
+local Msg = require("lib.msg")
+local styles = require("lib.helpers_styles")
+local printer = require("printer.printer")
+
+local Texts = {
+	Plant = "Presiona {image:key_arrow_down} para {green}plantar{/}",
+	Grow = "Presiona {image:key_arrow_down} para {yellow}florecer{/}",
+}
+
+function init(self)
+	-- Add initialization code here
+	-- Learn more: https://defold.com/manuals/script/
+	-- Remove this function if not needed
+	printer.add_styles(styles) -- base
+	self.printer = printer.new(self, "helpers")
+end
+
+function final(self)
+	self.printer:final()
+end
+
+function update(self, dt)
+	self.printer:update(dt)
+end
+
+function on_show_plant_message(self, message)
+	if self.foo then return end
+
+	self.foo = true
+	self.printer:print(Texts.Plant)
+end
+
+function on_message(self, message_id, message, sender)
+	if message_id == Msg.UI.SHOW_PLANT_TEXT then
+		on_show_plant_message(self, message)
+	end
+end
+
+function on_input(self, action_id, action)
+end

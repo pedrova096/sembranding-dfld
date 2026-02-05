@@ -1,0 +1,4 @@
+images {
+  image: "/assets/ui/key_arrow_down.png"
+}
+extrude_borders: 2

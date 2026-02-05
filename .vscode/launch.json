@@ -10,16 +10,12 @@
       "program": {
         "command": "build/defoldkit/dmengine"
       },
-      "args": [
-        "build/defoldkit/game.projectc"
-      ],
+      "args": ["build/defoldkit/game.projectc"],
       "windows": {
         "program": {
           "command": "build\\defoldkit\\dmengine.exe"
         },
-        "args": [
-          "build\\defoldkit\\game.projectc"
-        ]
+        "args": ["build\\defoldkit\\game.projectc"]
       },
       "preLaunchTask": "Defold Kit: Build to Launch"
     }

@@ -6,7 +6,6 @@ local Player = {
   ACTION_B_PRESS = hash("action_b_press"),
   ACTION_B_RELEASE = hash("action_b_release"),
   UPDATE_HEALTH_STATUS = hash("update_health_status"),
-  PUNCH_HIT = hash("punch_hit"),
 }
 
 local Seeder = {
@@ -31,6 +30,9 @@ local Camera = {
   SHAKE_INTERRUPT = hash("camera_shake_interrupt"),
 }
 
+local UI = {
+  SHOW_PLANT_TEXT = hash("show_plant_text"),
+}
 
 return {
   Player = Player,
@@ -38,6 +40,7 @@ return {
   Seeder = Seeder,
   Game = Game,
   Main = Main,
+  UI = UI,
   ---
   HIDE_ELEMENT = hash("hide_element"),
   SHOW_ELEMENT = hash("show_element"),

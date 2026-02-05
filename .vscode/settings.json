@@ -10,13 +10,10 @@
   "Lua.completion.showWord": "Fallback",
   "Lua.completion.autoRequire": false,
   "Lua.diagnostics.libraryFiles": "Disable",
-  "Lua.diagnostics.disable": [
-    "lowercase-global",
-    "redefined-local"
-  ],
+  "Lua.diagnostics.disable": ["lowercase-global", "redefined-local"],
   "Lua.workspace.library": [
-    "~/.config/Cursor/User/globalStorage/astronachos.defold",
-    "~/.config/Cursor/User/workspaceStorage/9d66717526d97a70e2d7f44193b264b5/astronachos.defold"
+    "~/.config/Code/User/globalStorage/astronachos.defold",
+    "~/.config/Code/User/workspaceStorage/f6a65194903d723ca52e4b07c55e161e/astronachos.defold"
   ],
   "files.associations": {
     "*.project": "ini",
@@ -58,9 +55,9 @@
     "*.script_api": "yaml",
     "ext.manifest": "yaml"
   },
-  "cSpell.words": [
-    "seedable",
-    "tweener",
-    "Tweener"
-  ]
+  "cSpell.words": ["seedable", "tweener", "Tweener"],
+  "glsllint.additionalStageAssociations": {
+    ".fp": "frag",
+    ".vp": "vert"
+  }
 }

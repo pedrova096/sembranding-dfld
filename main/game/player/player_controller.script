@@ -50,11 +50,13 @@ function init(self)
 	self.debug = true
 end
 
-local CONTACT_RAYS_SIZE = 10
-local CONTACT_RAYS = { vmath.vector3(-10, 4, 0), vmath.vector3(0, 4, 0), vmath.vector3(10, 4, 0) }
+local CONTACT_RAYS_SIZE = 8
+local CONTACT_RAYS = { vmath.vector3(-8, 4, 0), vmath.vector3(0, 4, 0), vmath.vector3(8, 4, 0) }
 local function find_seedable_contact(self)
 	local position = go.get_position()
-	for _, ray in ipairs(CONTACT_RAYS) do
+
+	local contact_rays = CONTACT_RAYS -- TODO: flip this base of the player facing
+	for _, ray in ipairs(contact_rays) do
 		local from = position + ray
 		local to = from + vmath.vector3(0, -CONTACT_RAYS_SIZE, 0)
 		local contact = physics.raycast(from, to, { hash("seedable") })
@@ -100,6 +102,18 @@ local function seedable_contact_pipe(self)
 	}
 
 	pprint("seedable contact", self.current_seedable_contact)
+
+	--draw a cross
+	-- msg.post("@render:", "draw_line", {
+	-- 	start_point = contact.position - vmath.vector3(0, 8, 0),
+	-- 	end_point = contact.position + vmath.vector3(0, 8, 0),
+	-- 	color = vmath.vector4(0, 0, 1, 1)
+	-- })
+	-- msg.post("@render:", "draw_line", {
+	-- 	start_point = contact.position - vmath.vector3(8, 0, 0),
+	-- 	end_point = contact.position + vmath.vector3(8, 0, 0),
+	-- 	color = vmath.vector4(0, 0, 1, 1)
+	-- })
 
 	msg.post(Urls.Ext.GameController, Msg.Game.SEEDABLE_CONTACT, self.current_seedable_contact)
 end
