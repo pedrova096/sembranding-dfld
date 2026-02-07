@@ -1,4 +1,3 @@
-
 -- The camera script is fairly light (so far, anyway).
 
 -- 1. It holds the properties so the user can set them in the editor.
@@ -27,10 +26,32 @@ go.property("fixedArea", true)
 go.property("fixedWidth", false)
 go.property("fixedHeight", false)
 
+go.property("useBounds", false)
+go.property("boundsMin", vmath.vector3(-100000, -100000, 0))
+go.property("boundsMax", vmath.vector3(100000, 100000, 0))
+
 local TWO_PI = math.pi * 2
 local FORWARDVEC = vmath.vector3(0, 0, -1)
 local UPVEC = vmath.vector3(0, 1, 0)
 local RIGHTVEC = vmath.vector3(1, 0, 0)
+
+local function clamp(value, min_value, max_value)
+	if min_value ~= nil and value < min_value then
+		return min_value
+	end
+	if max_value ~= nil and value > max_value then
+		return max_value
+	end
+	return value
+end
+
+local function clamp_position_xy(pos, bounds_min, bounds_max)
+	return vmath.vector3(
+		clamp(pos.x, bounds_min.x, bounds_max.x),
+		clamp(pos.y, bounds_min.y, bounds_max.y),
+		pos.z
+	)
+end
 
 
 function init(self)
@@ -58,11 +79,11 @@ function init(self)
 		else
 			-- or get fixed aspect viewArea inside current window
 			local scale = math.min(rendercam.window.x / self.aspectRatio, rendercam.window.y / 1)
-			self.viewArea.x = scale * self.aspectRatio;  self.viewArea.y = scale
+			self.viewArea.x = scale * self.aspectRatio; self.viewArea.y = scale
 		end
 	elseif not self.useViewArea then -- not using viewArea and non-fixed aspect ratio
 		-- Set viewArea to current window size
-		self.viewArea.x = rendercam.window.x;  self.viewArea.y = rendercam.window.y
+		self.viewArea.x = rendercam.window.x; self.viewArea.y = rendercam.window.y
 	end
 
 	-- Get initial vectors & stuff
@@ -85,7 +106,7 @@ function init(self)
 	-- Fixed FOV -- just have to set initial viewArea to match the FOV
 	-- to -maintain- a fixed FOV, must use "Fixed Height" mode, or a fixed aspect ratio and any "Fixed" scale mode.
 	if self.fov > 0 then
-		self.fov = math.rad(self.fov) -- FOV is set in degrees
+		self.fov = math.rad(self.fov)                        -- FOV is set in degrees
 		if not self.orthographic and not self.useViewArea then -- don't use FOV if using view area
 			if self.viewArea.z == 0 then self.viewArea.z = 1 end -- view distance doesn't matter for fixed FOV, it just can't be zero.
 			self.viewArea.y = (self.viewArea.z * math.tan(self.fov * 0.5)) * 2
@@ -115,11 +136,11 @@ function init(self)
 		halfViewArea = vmath.vector3(self.viewArea) * 0.5,
 		wpos = self.wpos,
 		wforwardVec = self.wforwardVec, -- for calculating view matrix
-		wupVec = self.wupVec, -- for calculating view matrix
+		wupVec = self.wupVec,         -- for calculating view matrix
 		lpos = self.lpos,
 		lforwardVec = self.lforwardVec, -- for zooming
-		lupVec = self.lupVec, -- or panning
-		lrightVec = self.lrightVec, -- for panning
+		lupVec = self.lupVec,         -- or panning
+		lrightVec = self.lrightVec,   -- for panning
 		shakes = {},
 		recoils = {},
 		follows = {},
@@ -149,9 +170,9 @@ function on_message(self, message_id, message, sender)
 		self.data.lrightVec = vmath.rotate(self.lrot, RIGHTVEC)
 
 		-- Camera Shake
-		self.data.lpos = self.data.lpos - self.shake -- subtract last frame's shake
-		self.shake.x = 0;  self.shake.y = 0;  self.shake.z = 0
-		for i=#self.data.shakes, 1, -1 do -- iterate backwards so I can remove arbitrary elements without problems
+		self.data.lpos = self.data.lpos - self.shake  -- subtract last frame's shake
+		self.shake.x = 0; self.shake.y = 0; self.shake.z = 0
+		for i = #self.data.shakes, 1, -1 do           -- iterate backwards so I can remove arbitrary elements without problems
 			local v = self.data.shakes[i]
 			local d = math.random() * v.dist * v.t / v.dur -- linear falloff
 			local angle = math.random() * TWO_PI
@@ -162,10 +183,10 @@ function on_message(self, message_id, message, sender)
 		end
 
 		-- Camera Recoil
-		for i=#self.data.recoils, 1, -1 do
+		for i = #self.data.recoils, 1, -1 do
 			local v = self.data.recoils[i]
 			local d = v.t / v.dur
-			d = d*d -- square falloff
+			d = d * d                                                 -- square falloff
 			self.shake = self.shake + vmath.rotate(self.lrot, v.vec * d) -- rotate recoil vec so it's relative to the camera
 			v.t = v.t - self.dt
 			if v.t <= 0 then table.remove(self.data.recoils, i) end
@@ -173,16 +194,25 @@ function on_message(self, message_id, message, sender)
 
 		-- Camera Follow
 		if self.data.following then
-			self.followPos.x = 0;  self.followPos.y = 0;
+			self.followPos.x = 0; self.followPos.y = 0;
 			for i, v in ipairs(self.data.follows) do
 				self.followPos = self.followPos + go.get_world_position(v)
 			end
-			self.followPos = self.followPos * (1/#self.data.follows)
+			self.followPos = self.followPos * (1 / #self.data.follows)
 			self.followPos = rendercam.follow_lerp_func(self.data.lpos, self.followPos, self.dt)
-			self.data.lpos.x = self.followPos.x;  self.data.lpos.y = self.followPos.y
+			self.data.lpos.x = self.followPos.x; self.data.lpos.y = self.followPos.y
 		end
 
-		if #self.data.recoils + #self.data.shakes + #self.data.follows > 0 then
+		local clamped = false
+		if self.useBounds then
+			local clamped_pos = clamp_position_xy(self.data.lpos, self.boundsMin, self.boundsMax)
+			if clamped_pos.x ~= self.data.lpos.x or clamped_pos.y ~= self.data.lpos.y then
+				self.data.lpos = clamped_pos
+				clamped = true
+			end
+		end
+
+		if clamped or #self.data.recoils + #self.data.shakes + #self.data.follows > 0 then
 			self.data.lpos = self.data.lpos + self.shake
 			go.set_position(self.data.lpos)
 		end
@@ -197,4 +227,3 @@ function on_message(self, message_id, message, sender)
 		self.data.abs_farZ = self.data.wpos.z - self.data.farZ
 	end
 end
-
