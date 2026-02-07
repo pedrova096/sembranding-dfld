@@ -1,5 +1,6 @@
 local Msg = require("lib.msg")
 local Utils = require("utils.utils")
+local rendercam = require("rendercam.rendercam")
 
 local Urls = {
   Player = "/player/root",
@@ -34,6 +35,9 @@ function init(self)
 
   self.action_b_active = false
   timer.delay(0.1, false, init_enemy_spawner)
+
+  rendercam.activate_camera(Urls.CameraElement)
+  rendercam.follow(go.get_id(Urls.Player), true, go.get_id(Urls.CameraElement))
 end
 
 function final(self)
@@ -48,7 +52,11 @@ local function on_update_health_status(self, message)
 end
 
 local function on_seedable_contact(self, message)
-  msg.post(Urls.UI, Msg.UI.SHOW_PLANT_TEXT)
+  msg.post(Urls.UI, Msg.UI.SHOW_PLANT_TEXT, message)
+end
+
+local function on_seedable_contact_end(self, message)
+  msg.post(Urls.UI, Msg.UI.HIDE_PLANT_TEXT, message)
 end
 
 function on_message(self, message_id, message, sender)
@@ -58,6 +66,8 @@ function on_message(self, message_id, message, sender)
     on_update_health_status(self, message)
   elseif message_id == Msg.Game.SEEDABLE_CONTACT then
     on_seedable_contact(self, message)
+  elseif message_id == Msg.Game.SEEDABLE_CONTACT_END then
+    on_seedable_contact_end(self, message)
   end
 end
 
@@ -116,7 +126,7 @@ end
 function on_input(self, action_id, action)
   local handled = false
 
-  input_mouse(self, action)
+  -- input_mouse(self, action)
 
   if input_arrow(self, action_id, action) then
     handled = true

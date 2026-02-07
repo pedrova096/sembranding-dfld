@@ -8,10 +8,6 @@ textures {
   texture: "/assets/ui/ui.atlas"
 }
 nodes {
-  position {
-    x: 291.0
-    y: 189.0
-  }
   type: TYPE_TEMPLATE
   id: "helpers"
   inherit_alpha: true
@@ -38,6 +34,21 @@ nodes {
   parent: "helpers"
   overridden_fields: 9
   template_node_child: true
+}
+nodes {
+  size {
+    x: 20.0
+    y: 20.0
+    z: 2.0
+  }
+  color {
+    y: 0.0
+    z: 0.0
+  }
+  type: TYPE_BOX
+  id: "test"
+  inherit_alpha: true
+  size_mode: SIZE_MODE_AUTO
 }
 material: "/builtins/materials/gui.material"
 adjust_reference: ADJUST_REFERENCE_PARENT

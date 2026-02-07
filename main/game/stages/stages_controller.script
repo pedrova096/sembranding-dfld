@@ -1,63 +1,71 @@
 local Tiles = {
+	Corrupted = 1,
 	Seedable = 2,
 }
 
 local Urls = {
 	Stage = "#stage",
+	GoodSproutFactory = "#good_sprout_factory",
+	BadSproutFactory = "#bad_sprout_factory",
 }
 
 local TILE_SIZE = 48
 local TILE_PADDING_TOP = 16
 
----Returns a table of all seedable tile positions {x, y} in world coordinates
----@return table[] Array of {x, y, tile_x, tile_y} positions
-local function get_seedable_tiles()
+---Returns a table of all seedable and corrupted tile positions {x, y} in world coordinates
+---@return { seedable = table[], corrupted = table[] } positions in world coordinates
+local function get_tiles_info()
 	local seedable_positions = {}
+	local corrupted_positions = {}
 	local layer = "tiles"
 
 	-- Get tilemap bounds
 	local x, y, w, h = tilemap.get_bounds(Urls.Stage)
 
-	-- Iterate through all tiles
 	for row = y, y + h - 1 do
 		for col = x, x + w - 1 do
 			local tile = tilemap.get_tile(Urls.Stage, layer, col, row)
-
+			local position = {
+				tile_x = col,
+				tile_y = row,
+				vector = vmath.vector3(
+					(col - 0.5) * TILE_SIZE,
+					row * TILE_SIZE - TILE_PADDING_TOP,
+					0
+				),
+			}
 			if tile == Tiles.Seedable then
-				-- Store both tile coordinates and world position
-				table.insert(seedable_positions, {
-					tile_x = col,
-					tile_y = row,
-					x = (col - 0.5) * TILE_SIZE,
-					y = row * TILE_SIZE - TILE_PADDING_TOP,
-				})
+				table.insert(seedable_positions, position)
+			elseif tile == Tiles.Corrupted then
+				table.insert(corrupted_positions, position)
 			end
 		end
 	end
 
-	return seedable_positions
+	return {
+		seedable = seedable_positions,
+		corrupted = corrupted_positions,
+	}
+end
+
+local function spawn_sprouts(tiles, factory_url, properties)
+	local sprouts = {}
+	for _, tile_info in ipairs(tiles) do
+		local sprout = factory.create(factory_url, tile_info.vector, nil, properties)
+		table.insert(sprouts, sprout)
+	end
+
+	return sprouts
 end
 
 function init(self)
-	self.seedable_tiles = get_seedable_tiles()
+	self.tiles_info = get_tiles_info()
 
-	pprint(self.seedable_tiles)
+	self.good_sprouts = spawn_sprouts(self.tiles_info.seedable, Urls.GoodSproutFactory)
+	self.bad_sprouts = spawn_sprouts(self.tiles_info.corrupted, Urls.BadSproutFactory)
 end
 
 function update(self, dt)
-	-- for _, tile in ipairs(self.seedable_tiles) do
-	-- 	-- draw a crosshair at the tile position
-	-- 	msg.post("@render:", "draw_line", {
-	-- 		start_point = vmath.vector3(tile.x - 10, tile.y, 0),
-	-- 		end_point = vmath.vector3(tile.x + 10, tile.y, 0),
-	-- 		color = vmath.vector4(1, 0, 0, 1)
-	-- 	})
-	-- 	msg.post("@render:", "draw_line", {
-	-- 		start_point = vmath.vector3(tile.x, tile.y - 10, 0),
-	-- 		end_point = vmath.vector3(tile.x, tile.y + 10, 0),
-	-- 		color = vmath.vector4(1, 0, 0, 1)
-	-- 	})
-	-- end
 end
 
 function on_message(self, message_id, message, sender)

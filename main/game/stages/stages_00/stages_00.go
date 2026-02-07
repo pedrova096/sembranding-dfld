@@ -19,3 +19,15 @@ embedded_components {
   "locked_rotation: true\n"
   ""
 }
+embedded_components {
+  id: "good_sprout_factory"
+  type: "factory"
+  data: "prototype: \"/main/game/sprouts/good_sprout/good_sprout.go\"\n"
+  ""
+}
+embedded_components {
+  id: "bad_sprout_factory"
+  type: "factory"
+  data: "prototype: \"/main/game/sprouts/bad_sprout/bad_sprout.go\"\n"
+  ""
+}

@@ -2,19 +2,16 @@ local platypus = require("utils.platypus.platypus")
 local Msg = require("lib.msg")
 
 local Urls = {
-	Ext = {
-		CameraElement = "/camera",
-		GameController = "/game_controller",
-	},
 	Seeder = "seeder",
+	-- External
+	CameraElement = "/camera",
+	GameController = "/game_controller",
 }
 
 go.property("velocity", 100)
 go.property("jump_force", 200)
 
 function init(self)
-	msg.post(Urls.Ext.CameraElement, Msg.Camera.CAMERA_FOLLOW)
-
 	self.platypus = platypus.create({
 		collisions = {
 			separation = platypus.SEPARATION_RAYS,
@@ -81,7 +78,7 @@ local function seedable_contact_pipe(self)
 	local contact = find_seedable_contact(self)
 	if not contact then
 		if self.current_seedable_contact then
-			msg.post(Urls.Ext.GameController, Msg.Game.SEEDABLE_CONTACT_END, self.current_seedable_contact)
+			msg.post(Urls.GameController, Msg.Game.SEEDABLE_CONTACT_END, self.current_seedable_contact)
 			self.current_seedable_contact = nil
 		end
 
@@ -115,12 +112,13 @@ local function seedable_contact_pipe(self)
 	-- 	color = vmath.vector4(0, 0, 1, 1)
 	-- })
 
-	msg.post(Urls.Ext.GameController, Msg.Game.SEEDABLE_CONTACT, self.current_seedable_contact)
+	msg.post(Urls.GameController, Msg.Game.SEEDABLE_CONTACT, self.current_seedable_contact)
 end
 
 function update(self, dt)
 	self.platypus.update(dt)
-	seedable_contact_pipe(self)
+
+	-- seedable_contact_pipe(self)
 end
 
 function on_move_trigger(self, message)

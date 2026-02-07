@@ -1,0 +1,52 @@
+local Msg = require("lib.msg")
+local Element = require("utils.element")
+
+go.property("enabled", false)
+
+local Urls = {
+	Model = "#model",
+	Body = "#collision_object",
+	-- External
+	GameController = "/game_controller",
+}
+
+local function on_hide_element(self)
+	Element.toggle_sprite(false, Urls.Model)
+end
+
+local function on_show_element(self)
+	Element.toggle_sprite(true, Urls.Model)
+end
+
+function init(self)
+	if not self.enabled then
+		on_hide_element(self)
+	end
+end
+
+function on_trigger_response(self, response)
+	if response.enter then
+		msg.post(Urls.GameController, Msg.Game.SEEDABLE_CONTACT, {
+			position = go.get_position(),
+			id = go.get_id()
+		})
+		return
+	end
+
+	pprint("SEEDABLE_CONTACT_END")
+	msg.post(Urls.GameController, Msg.Game.SEEDABLE_CONTACT_END, {
+		id = go.get_id()
+	})
+end
+
+function on_message(self, message_id, message, sender)
+	if message_id == Msg.HIDE_ELEMENT then
+		on_hide_element(self)
+	elseif message_id == Msg.SHOW_ELEMENT then
+		on_show_element(self)
+	elseif message_id == Msg.TRIGGER_RESPONSE then
+		on_trigger_response(self, message)
+	elseif message_id == Msg.COLLISION_RESPONSE then
+		-- on_collision_response(self, message)
+	end
+end

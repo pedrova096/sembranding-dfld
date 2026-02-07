@@ -36,8 +36,8 @@ fragment_constants {
   name: "sprite_counts"
   type: CONSTANT_TYPE_USER
   value {
-    x: 4.0
-    y: 6.0
+    x: 2.0
+    y: 3.0
   }
 }
 samplers {

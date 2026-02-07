@@ -1,6 +1,7 @@
 local Msg = require("lib.msg")
 local styles = require("lib.helpers_styles")
 local printer = require("printer.printer")
+local rendercam = require("rendercam.rendercam")
 
 local Texts = {
 	Plant = "Presiona {image:key_arrow_down} para {green}plantar{/}",
@@ -8,10 +9,7 @@ local Texts = {
 }
 
 function init(self)
-	-- Add initialization code here
-	-- Learn more: https://defold.com/manuals/script/
-	-- Remove this function if not needed
-	printer.add_styles(styles) -- base
+	printer.add_styles(styles)
 	self.printer = printer.new(self, "helpers")
 end
 
@@ -19,20 +17,47 @@ function final(self)
 	self.printer:final()
 end
 
-function update(self, dt)
-	self.printer:update(dt)
+local TEXT_OFFSET = vmath.vector3(0, 10, 0)
+local function current_print_pipe(self, dt)
+	if not self.printer.is_print then return end
+
+	local helpers_node = gui.get_node("helpers/text_parent")
+	local new_position = rendercam.world_to_screen(
+		self.current_print.position + TEXT_OFFSET,
+		gui.get_adjust_mode(helpers_node)
+	)
+	gui.set_position(helpers_node, new_position)
 end
 
-function on_show_plant_message(self, message)
-	if self.foo then return end
+function update(self, dt)
+	self.printer:update(dt)
+	current_print_pipe(self, dt)
+end
 
-	self.foo = true
+local function on_show_plant_message(self, message)
+	if self.printer.is_print then
+		local current_id = self.current_print.related_id
+		if current_id == message.id then return end
+
+		self.printer:clear()
+	end
+
 	self.printer:print(Texts.Plant)
+	self.current_print = {
+		related_id = message.id,
+		position = message.position,
+	}
+end
+
+local function on_seedable_contact_end(self, message)
+	self.printer:fadeout()
 end
 
 function on_message(self, message_id, message, sender)
 	if message_id == Msg.UI.SHOW_PLANT_TEXT then
 		on_show_plant_message(self, message)
+	elseif message_id == Msg.UI.HIDE_PLANT_TEXT then
+		on_seedable_contact_end(self, message)
 	end
 end
 

@@ -1,3 +1,7 @@
+components {
+  id: "controller"
+  component: "/main/game/sprouts/sprout_controller.script"
+}
 embedded_components {
   id: "collision_object"
   type: "collisionobject"
@@ -5,8 +9,8 @@ embedded_components {
   "mass: 1.0\n"
   "friction: 0.1\n"
   "restitution: 0.5\n"
-  "group: \"default\"\n"
-  "mask: \"default\"\n"
+  "group: \"corrupted_ground\"\n"
+  "mask: \"player\"\n"
   "embedded_collision_shape {\n"
   "  shapes {\n"
   "    shape_type: TYPE_BOX\n"

@@ -1,0 +1,34 @@
+local Msg = require("lib.msg")
+local Utils = require("utils.element")
+
+go.property("enabled", true)
+
+local Urls = {
+	Model = "#model",
+	Body = "#collision_object",
+}
+
+local function on_hide_element(self)
+	Utils.hide_element({
+		sprite = Urls.Model,
+		body = Urls.Body,
+	})
+end
+
+local function on_show_element(self)
+	Utils.show_element(self.urls)
+end
+
+function init(self)
+	if not self.enabled then
+		on_hide_element(self)
+	end
+end
+
+function on_message(self, message_id, message, sender)
+	if message_id == Msg.HIDE_ELEMENT then
+		on_hide_element(self)
+	elseif message_id == Msg.SHOW_ELEMENT then
+		on_show_element(self)
+	end
+end

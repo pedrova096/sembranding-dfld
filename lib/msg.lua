@@ -23,20 +23,13 @@ local Main = {
   NEW_GAME = hash("new_game")
 }
 
-local Camera = {
-  CAMERA_FOLLOW = hash("camera_follow"),
-  CAMERA_UNFOLLOW = hash("camera_unfollow"),
-  SHAKE = hash("camera_shake"),
-  SHAKE_INTERRUPT = hash("camera_shake_interrupt"),
-}
-
 local UI = {
   SHOW_PLANT_TEXT = hash("show_plant_text"),
+  HIDE_PLANT_TEXT = hash("hide_plant_text"),
 }
 
 return {
   Player = Player,
-  Camera = Camera,
   Seeder = Seeder,
   Game = Game,
   Main = Main,
@@ -48,5 +41,6 @@ return {
   PROXY_LOADED = hash("proxy_loaded"),
   APPLY_DAMAGE = hash("apply_damage"),
   COLLISION_RESPONSE = hash("collision_response"),
+  TRIGGER_RESPONSE = hash("trigger_response"),
   STATE_CHANGED = hash("state_changed"),
 }
