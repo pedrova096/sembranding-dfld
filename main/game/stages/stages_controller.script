@@ -1,3 +1,5 @@
+local Msg = require("lib.msg")
+
 local Tiles = {
 	Corrupted = 1,
 	Seedable = 2,
@@ -7,6 +9,8 @@ local Urls = {
 	Stage = "#stage",
 	GoodSproutFactory = "#good_sprout_factory",
 	BadSproutFactory = "#bad_sprout_factory",
+	-- External
+	GameController = "/game_controller",
 }
 
 local TILE_SIZE = 48
@@ -45,6 +49,8 @@ local function get_tiles_info()
 	return {
 		seedable = seedable_positions,
 		corrupted = corrupted_positions,
+		width = w * TILE_SIZE,
+		height = h * TILE_SIZE,
 	}
 end
 
@@ -58,11 +64,43 @@ local function spawn_sprouts(tiles, factory_url, properties)
 	return sprouts
 end
 
+
+local BOUNDS_SCALE = 0.5
+local function get_scaled_centered_bounds(left, right, top, bottom, scale)
+	scale = scale or 1
+
+	local center_x = (left + right) * 0.5
+	local center_y = (top + bottom) * 0.5
+
+	local scaled_half_width = (right - left) * scale * 0.5
+	local scaled_half_height = (top - bottom) * scale * 0.5
+
+	return {
+		left = center_x - scaled_half_width,
+		right = center_x + scaled_half_width,
+		top = center_y + scaled_half_height,
+		bottom = center_y - scaled_half_height,
+	}
+end
+
+local function get_tiles_bounds(self)
+	local width, height = self.tiles_info.width, self.tiles_info.height
+	local current_position = go.get_position()
+	local left = current_position.x
+	local right = current_position.x + width
+	local top = current_position.y
+	local bottom = current_position.y - height
+
+	return get_scaled_centered_bounds(left, right, top, bottom, BOUNDS_SCALE)
+end
+
 function init(self)
 	self.tiles_info = get_tiles_info()
-
 	self.good_sprouts = spawn_sprouts(self.tiles_info.seedable, Urls.GoodSproutFactory)
 	self.bad_sprouts = spawn_sprouts(self.tiles_info.corrupted, Urls.BadSproutFactory)
+
+	local bounds = get_tiles_bounds(self)
+	msg.post(Urls.GameController, Msg.Game.SET_MAP_BOUNDS, bounds)
 end
 
 function update(self, dt)

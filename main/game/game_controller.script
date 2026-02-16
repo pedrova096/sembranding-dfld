@@ -4,7 +4,7 @@ local rendercam = require("rendercam.rendercam")
 
 local Urls = {
   Player = "/player/root",
-  CameraElement = "/camera#camera",
+  CameraElement = "/camera",
   EnemyFactory = "/factories#enemy_factory",
   UI = "/ui#ui"
 }
@@ -41,10 +41,7 @@ function init(self)
 end
 
 function final(self)
-end
-
-local function on_set_map_bounds(self, message)
-  self.map_bounds = message
+  rendercam.camera_final(Urls.CameraElement)
 end
 
 local function on_update_health_status(self, message)
@@ -53,10 +50,21 @@ end
 
 local function on_seedable_contact(self, message)
   msg.post(Urls.UI, Msg.UI.SHOW_PLANT_TEXT, message)
+  msg.post(Urls.Player, Msg.Game.SEEDABLE_CONTACT, message)
 end
 
 local function on_seedable_contact_end(self, message)
   msg.post(Urls.UI, Msg.UI.HIDE_PLANT_TEXT, message)
+  msg.post(Urls.Player, Msg.Game.SEEDABLE_CONTACT_END, message)
+end
+
+local function on_set_map_bounds(self, message)
+  self.map_bounds = message
+
+  msg.post(Urls.CameraElement, Msg.Camera.SET_BOUNDS, {
+    useBounds = true,
+    bounds = message,
+  })
 end
 
 function on_message(self, message_id, message, sender)

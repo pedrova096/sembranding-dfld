@@ -1,10 +1,10 @@
-
 -- The camera script is fairly light (so far, anyway).
 
 -- 1. It holds the properties so the user can set them in the editor.
 -- 2. It updates the camera's position and rotation with the rendercam module.
 
-local rendercam = require "rendercam.rendercam"
+local rendercam = require("rendercam.rendercam")
+local Msg = require("lib.msg")
 
 go.property("active", true)
 go.property("orthographic", true)
@@ -27,11 +27,42 @@ go.property("fixedArea", true)
 go.property("fixedWidth", false)
 go.property("fixedHeight", false)
 
+go.property("useBounds", false)
+go.property("boundsTop", 100000)
+go.property("boundsRight", 100000)
+go.property("boundsBottom", -100000)
+go.property("boundsLeft", -100000)
+
 local TWO_PI = math.pi * 2
 local FORWARDVEC = vmath.vector3(0, 0, -1)
 local UPVEC = vmath.vector3(0, 1, 0)
 local RIGHTVEC = vmath.vector3(1, 0, 0)
 
+local function clamp(value, min_value, max_value)
+	if min_value ~= nil and value < min_value then
+		return min_value
+	end
+	if max_value ~= nil and value > max_value then
+		return max_value
+	end
+	return value
+end
+
+local function clamp_position_xy(pos, bounds)
+	return vmath.vector3(
+		clamp(pos.x, bounds.left, bounds.right),
+		clamp(pos.y, bounds.bottom, bounds.top),
+		pos.z
+	)
+end
+
+local function get_clamped_position_xy(pos, bounds)
+	if bounds then
+		return clamp_position_xy(pos, bounds)
+	end
+
+	return pos
+end
 
 function init(self)
 	-- Get initial scale mode
@@ -58,11 +89,11 @@ function init(self)
 		else
 			-- or get fixed aspect viewArea inside current window
 			local scale = math.min(rendercam.window.x / self.aspectRatio, rendercam.window.y / 1)
-			self.viewArea.x = scale * self.aspectRatio;  self.viewArea.y = scale
+			self.viewArea.x = scale * self.aspectRatio; self.viewArea.y = scale
 		end
 	elseif not self.useViewArea then -- not using viewArea and non-fixed aspect ratio
 		-- Set viewArea to current window size
-		self.viewArea.x = rendercam.window.x;  self.viewArea.y = rendercam.window.y
+		self.viewArea.x = rendercam.window.x; self.viewArea.y = rendercam.window.y
 	end
 
 	-- Get initial vectors & stuff
@@ -78,6 +109,12 @@ function init(self)
 	self.id = go.get_id()
 	self.shake = vmath.vector3()
 	self.followPos = vmath.vector3()
+	self.bounds = {
+		top = self.boundsTop,
+		right = self.boundsRight,
+		bottom = self.boundsBottom,
+		left = self.boundsLeft,
+	}
 
 	self.viewArea.z = self.viewDistance
 	-- viewArea.z only used (with viewArea.y) in rendercam.update_window to get the FOV
@@ -85,7 +122,7 @@ function init(self)
 	-- Fixed FOV -- just have to set initial viewArea to match the FOV
 	-- to -maintain- a fixed FOV, must use "Fixed Height" mode, or a fixed aspect ratio and any "Fixed" scale mode.
 	if self.fov > 0 then
-		self.fov = math.rad(self.fov) -- FOV is set in degrees
+		self.fov = math.rad(self.fov)                        -- FOV is set in degrees
 		if not self.orthographic and not self.useViewArea then -- don't use FOV if using view area
 			if self.viewArea.z == 0 then self.viewArea.z = 1 end -- view distance doesn't matter for fixed FOV, it just can't be zero.
 			self.viewArea.y = (self.viewArea.z * math.tan(self.fov * 0.5)) * 2
@@ -115,11 +152,11 @@ function init(self)
 		halfViewArea = vmath.vector3(self.viewArea) * 0.5,
 		wpos = self.wpos,
 		wforwardVec = self.wforwardVec, -- for calculating view matrix
-		wupVec = self.wupVec, -- for calculating view matrix
+		wupVec = self.wupVec,         -- for calculating view matrix
 		lpos = self.lpos,
 		lforwardVec = self.lforwardVec, -- for zooming
-		lupVec = self.lupVec, -- or panning
-		lrightVec = self.lrightVec, -- for panning
+		lupVec = self.lupVec,         -- or panning
+		lrightVec = self.lrightVec,   -- for panning
 		shakes = {},
 		recoils = {},
 		follows = {},
@@ -132,9 +169,52 @@ function final(self)
 	rendercam.camera_final(self.id)
 end
 
+local function debug_pipe(self)
+	if not self.useBounds then return end
+
+	-- BOTTOM LIMIT
+	local from = vmath.vector3(self.bounds.left, self.bounds.bottom, 0)
+	local to = vmath.vector3(self.bounds.right, self.bounds.bottom, 0)
+
+	msg.post("@render:", "draw_line", {
+		start_point = from,
+		end_point = to,
+		color = vmath.vector4(0, 1, 0, 1)
+	})
+
+	-- LEFT LIMIT
+	from = vmath.vector3(self.bounds.left, self.bounds.bottom, 0)
+	to = vmath.vector3(self.bounds.left, self.bounds.top, 0)
+
+	msg.post("@render:", "draw_line", {
+		start_point = from,
+		end_point = to,
+		color = vmath.vector4(1, 0, 0, 1)
+	})
+
+	-- RIGHT LIMIT
+	from = vmath.vector3(self.bounds.right, self.bounds.bottom, 0)
+	to = vmath.vector3(self.bounds.right, self.bounds.top, 0)
+	msg.post("@render:", "draw_line", {
+		start_point = from,
+		end_point = to,
+		color = vmath.vector4(0, 0, 1, 1)
+	})
+
+	-- TOP LIMIT
+	from = vmath.vector3(self.bounds.left, self.bounds.top, 0)
+	to = vmath.vector3(self.bounds.right, self.bounds.top, 0)
+	msg.post("@render:", "draw_line", {
+		start_point = from,
+		end_point = to,
+		color = vmath.vector4(0, 1, 1, 1)
+	})
+end
+
 function update(self, dt)
 	self.dt = dt -- faster to store than to send in message
 	msg.post("#", "post-update")
+	debug_pipe(self)
 end
 
 function on_message(self, message_id, message, sender)
@@ -149,9 +229,9 @@ function on_message(self, message_id, message, sender)
 		self.data.lrightVec = vmath.rotate(self.lrot, RIGHTVEC)
 
 		-- Camera Shake
-		self.data.lpos = self.data.lpos - self.shake -- subtract last frame's shake
-		self.shake.x = 0;  self.shake.y = 0;  self.shake.z = 0
-		for i=#self.data.shakes, 1, -1 do -- iterate backwards so I can remove arbitrary elements without problems
+		self.data.lpos = self.data.lpos - self.shake  -- subtract last frame's shake
+		self.shake.x = 0; self.shake.y = 0; self.shake.z = 0
+		for i = #self.data.shakes, 1, -1 do           -- iterate backwards so I can remove arbitrary elements without problems
 			local v = self.data.shakes[i]
 			local d = math.random() * v.dist * v.t / v.dur -- linear falloff
 			local angle = math.random() * TWO_PI
@@ -162,10 +242,10 @@ function on_message(self, message_id, message, sender)
 		end
 
 		-- Camera Recoil
-		for i=#self.data.recoils, 1, -1 do
+		for i = #self.data.recoils, 1, -1 do
 			local v = self.data.recoils[i]
 			local d = v.t / v.dur
-			d = d*d -- square falloff
+			d = d * d                                                 -- square falloff
 			self.shake = self.shake + vmath.rotate(self.lrot, v.vec * d) -- rotate recoil vec so it's relative to the camera
 			v.t = v.t - self.dt
 			if v.t <= 0 then table.remove(self.data.recoils, i) end
@@ -173,16 +253,26 @@ function on_message(self, message_id, message, sender)
 
 		-- Camera Follow
 		if self.data.following then
-			self.followPos.x = 0;  self.followPos.y = 0;
+			self.followPos.x = 0; self.followPos.y = 0;
 			for i, v in ipairs(self.data.follows) do
 				self.followPos = self.followPos + go.get_world_position(v)
 			end
-			self.followPos = self.followPos * (1/#self.data.follows)
+			self.followPos = self.followPos * (1 / #self.data.follows)
 			self.followPos = rendercam.follow_lerp_func(self.data.lpos, self.followPos, self.dt)
-			self.data.lpos.x = self.followPos.x;  self.data.lpos.y = self.followPos.y
+			self.data.lpos.x = self.followPos.x; self.data.lpos.y = self.followPos.y
 		end
 
-		if #self.data.recoils + #self.data.shakes + #self.data.follows > 0 then
+		local clamped = false
+		if self.useBounds then
+			local clamped_pos = get_clamped_position_xy(self.data.lpos, self.bounds)
+			pprint("clamped_pos", clamped_pos, "data.lpos", self.data.lpos)
+			if clamped_pos.x ~= self.data.lpos.x or clamped_pos.y ~= self.data.lpos.y then
+				self.data.lpos = clamped_pos
+				clamped = true
+			end
+		end
+
+		if clamped or #self.data.recoils + #self.data.shakes + #self.data.follows > 0 then
 			self.data.lpos = self.data.lpos + self.shake
 			go.set_position(self.data.lpos)
 		end
@@ -196,5 +286,9 @@ function on_message(self, message_id, message, sender)
 		self.data.abs_nearZ = self.data.wpos.z - self.data.nearZ
 		self.data.abs_farZ = self.data.wpos.z - self.data.farZ
 	end
-end
 
+	if message_id == Msg.Camera.SET_BOUNDS then
+		self.useBounds = message.useBounds
+		self.bounds = message.bounds
+	end
+end

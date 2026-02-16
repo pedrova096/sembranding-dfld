@@ -28,9 +28,14 @@ local UI = {
   HIDE_PLANT_TEXT = hash("hide_plant_text"),
 }
 
+local Camera = {
+  SET_BOUNDS = hash("set_bounds"),
+}
+
 return {
   Player = Player,
   Seeder = Seeder,
+  Camera = Camera,
   Game = Game,
   Main = Main,
   UI = UI,

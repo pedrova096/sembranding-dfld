@@ -44,81 +44,15 @@ function init(self)
 		offset = vmath.vector3(26.0, 26.0, 0)
 	})
 
-	self.debug = true
+	self.debug = false
+	self.seed = nil
 end
 
 local CONTACT_RAYS_SIZE = 8
 local CONTACT_RAYS = { vmath.vector3(-8, 4, 0), vmath.vector3(0, 4, 0), vmath.vector3(8, 4, 0) }
-local function find_seedable_contact(self)
-	local position = go.get_position()
-
-	local contact_rays = CONTACT_RAYS -- TODO: flip this base of the player facing
-	for _, ray in ipairs(contact_rays) do
-		local from = position + ray
-		local to = from + vmath.vector3(0, -CONTACT_RAYS_SIZE, 0)
-		local contact = physics.raycast(from, to, { hash("seedable") })
-		if self.debug then
-			msg.post("@render:", "draw_line", {
-				start_point = from,
-				end_point = to,
-				color = vmath.vector4(0, 0, 1, 1)
-			})
-		end
-		if contact then
-			return contact
-		end
-	end
-
-	return nil
-end
-
-local function seedable_contact_pipe(self)
-	if not self.platypus.has_ground_contact() then return end
-
-	local contact = find_seedable_contact(self)
-	if not contact then
-		if self.current_seedable_contact then
-			msg.post(Urls.GameController, Msg.Game.SEEDABLE_CONTACT_END, self.current_seedable_contact)
-			self.current_seedable_contact = nil
-		end
-
-		return
-	end
-
-	-- if self.current_seedable_contact.id == contact.id then
-	-- 	return
-	-- end
-
-	self.current_seedable_contact = {
-		fraction = contact.fraction,
-		group = contact.group,
-		id = contact.id,
-		normal = contact.normal,
-		position = contact.position,
-		request_id = contact.request_id,
-	}
-
-	pprint("seedable contact", self.current_seedable_contact)
-
-	--draw a cross
-	-- msg.post("@render:", "draw_line", {
-	-- 	start_point = contact.position - vmath.vector3(0, 8, 0),
-	-- 	end_point = contact.position + vmath.vector3(0, 8, 0),
-	-- 	color = vmath.vector4(0, 0, 1, 1)
-	-- })
-	-- msg.post("@render:", "draw_line", {
-	-- 	start_point = contact.position - vmath.vector3(8, 0, 0),
-	-- 	end_point = contact.position + vmath.vector3(8, 0, 0),
-	-- 	color = vmath.vector4(0, 0, 1, 1)
-	-- })
-
-	msg.post(Urls.GameController, Msg.Game.SEEDABLE_CONTACT, self.current_seedable_contact)
-end
-
 function update(self, dt)
 	self.platypus.update(dt)
-
-	-- seedable_contact_pipe(self)
+	-- vmath.vector3(117, -352.34042358398, 0)
 end
 
 function on_move_trigger(self, message)
@@ -135,11 +69,23 @@ end
 function on_stop_move(self)
 end
 
+local function on_seedable_contact(self, message)
+	self.seed = message
+end
+
+local function on_seedable_contact_end(self, message)
+	self.seed = nil
+end
+
 function on_message(self, message_id, message, sender)
 	if message_id == Msg.Player.MOVE_TRIGGER then
 		on_move_trigger(self, message)
 	elseif message_id == Msg.Player.STOP_MOVE then
 		on_stop_move(self)
+	elseif message_id == Msg.Game.SEEDABLE_CONTACT then
+		on_seedable_contact(self, message)
+	elseif message_id == Msg.Game.SEEDABLE_CONTACT_END then
+		on_seedable_contact_end(self, message)
 	else
 		self.platypus.on_message(message_id, message, sender)
 	end

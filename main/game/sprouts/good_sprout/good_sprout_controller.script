@@ -33,7 +33,6 @@ function on_trigger_response(self, response)
 		return
 	end
 
-	pprint("SEEDABLE_CONTACT_END")
 	msg.post(Urls.GameController, Msg.Game.SEEDABLE_CONTACT_END, {
 		id = go.get_id()
 	})
